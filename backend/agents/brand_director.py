@@ -127,6 +127,7 @@ class BrandDirector:
             full_prompt = f"{self.system_prompt}\n\n{context}"
 
             # Generate response using Gemini
+            print(f"Sending request to Gemini API...")
             response = await asyncio.to_thread(
                 self.model.generate_content,
                 full_prompt
@@ -134,6 +135,11 @@ class BrandDirector:
 
             # Extract text and parse JSON
             response_text = response.text.strip()
+            print(f"Gemini response received - length: {len(response_text)}")
+            print(f"First 500 chars: {response_text[:500]}")
+            
+            if not response_text:
+                raise Exception("Gemini returned empty response")
 
             # Remove any markdown formatting if present
             if response_text.startswith('```json'):
@@ -174,18 +180,15 @@ class BrandDirector:
             return strategy
 
         except json.JSONDecodeError as e:
-            # Fallback if JSON parsing fails
+            # Log and raise the error instead of fallback
             print(f"JSON parsing error: {e}")
-            print(
-                f"Response text: {response_text if 'response_text' in locals() else 'No response'}")
-            startup_idea = request if isinstance(
-                request, str) else request.startup_idea
-            return self._create_fallback_strategy(startup_idea)
+            print(f"Full response text: {response_text if 'response_text' in locals() else 'No response'}")
+            raise Exception(f"Failed to parse Gemini response as JSON: {e}")
         except Exception as e:
-            print(f"Brand analysis error: {e}")
-            startup_idea = request if isinstance(
-                request, str) else request.startup_idea
-            return self._create_fallback_strategy(startup_idea)
+            print(f"Brand analysis error: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            raise Exception(f"Brand generation failed: {e}")
 
     def _create_fallback_strategy(self, startup_idea: str) -> BrandStrategy:
         """Create a basic fallback strategy if AI fails"""
