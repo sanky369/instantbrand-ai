@@ -5,16 +5,36 @@ import google.generativeai as genai
 from models import BrandStrategy, DetailedBrandRequest
 from typing import Union
 
+
 class BrandDirector:
     def __init__(self):
-        # Configure Google Gemini API directly
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable is required")
-        
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-2.5-pro')
-        
+        try:
+            print("Initializing BrandDirector...")
+            # Configure Google Gemini API directly
+            api_key = os.getenv("GOOGLE_API_KEY")
+            if not api_key:
+                raise ValueError(
+                    "GOOGLE_API_KEY environment variable is required")
+
+            print(f"API key found: {api_key[:10]}...")
+            genai.configure(api_key=api_key)
+
+            # Try gemini-1.5-pro first as it's more widely available
+            try:
+                self.model = genai.GenerativeModel('gemini-2.5-pro')
+                print("Using gemini-2.5-pro model")
+            except Exception as e:
+                print(f"Failed to load gemini-2.5-pro: {e}")
+                self.model = genai.GenerativeModel('gemini-pro')
+                print("Falling back to gemini-pro model")
+
+            print("BrandDirector initialized successfully")
+        except Exception as e:
+            print(f"Error initializing BrandDirector: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+
         self.system_prompt = """You are a Silicon Valley brand strategist who has worked with Y Combinator startups and Fortune 500 companies.
         
         Your task is to analyze startup ideas through multiple strategic lenses and create comprehensive, actionable brand strategies.
@@ -80,7 +100,7 @@ class BrandDirector:
         - HealthTech: Prioritize outcomes, accessibility, trust
         
         Always respond with valid JSON only, no additional text."""
-    
+
     async def analyze_startup_idea(self, request: Union[str, DetailedBrandRequest]) -> BrandStrategy:
         """Analyze startup idea and generate brand strategy"""
         try:
@@ -102,33 +122,34 @@ class BrandDirector:
                 - Timeline: {request.timeline if request.timeline else 'Not specified'}
                 
                 Use this additional context to create a highly tailored brand strategy that addresses the specific needs and constraints."""
-            
+
             # Create the full prompt
             full_prompt = f"{self.system_prompt}\n\n{context}"
-            
+
             # Generate response using Gemini
             response = await asyncio.to_thread(
-                self.model.generate_content, 
+                self.model.generate_content,
                 full_prompt
             )
-            
+
             # Extract text and parse JSON
             response_text = response.text.strip()
-            
+
             # Remove any markdown formatting if present
             if response_text.startswith('```json'):
-                response_text = response_text.replace('```json', '').replace('```', '').strip()
+                response_text = response_text.replace(
+                    '```json', '').replace('```', '').strip()
             elif response_text.startswith('```'):
                 response_text = response_text.replace('```', '').strip()
-            
+
             # Parse the JSON response
             brand_data = json.loads(response_text)
-            
+
             # Handle color_scheme if it has rationale field
             if 'color_scheme' in brand_data and 'rationale' in brand_data['color_scheme']:
                 # Remove rationale from color_scheme as it's not in the model
                 del brand_data['color_scheme']['rationale']
-            
+
             # Ensure required fields have default values if missing
             brand_data.setdefault('alternative_names', [])
             brand_data.setdefault('customer_pain_points', [])
@@ -136,23 +157,26 @@ class BrandDirector:
             brand_data.setdefault('domain_suggestions', [])
             brand_data.setdefault('social_handles_availability', {})
             brand_data.setdefault('typography_recommendations', None)
-            
+
             # Validate and create BrandStrategy object
             strategy = BrandStrategy(**brand_data)
-            
+
             return strategy
-            
+
         except json.JSONDecodeError as e:
             # Fallback if JSON parsing fails
             print(f"JSON parsing error: {e}")
-            print(f"Response text: {response_text if 'response_text' in locals() else 'No response'}")
-            startup_idea = request if isinstance(request, str) else request.startup_idea
+            print(
+                f"Response text: {response_text if 'response_text' in locals() else 'No response'}")
+            startup_idea = request if isinstance(
+                request, str) else request.startup_idea
             return self._create_fallback_strategy(startup_idea)
         except Exception as e:
             print(f"Brand analysis error: {e}")
-            startup_idea = request if isinstance(request, str) else request.startup_idea
+            startup_idea = request if isinstance(
+                request, str) else request.startup_idea
             return self._create_fallback_strategy(startup_idea)
-    
+
     def _create_fallback_strategy(self, startup_idea: str) -> BrandStrategy:
         """Create a basic fallback strategy if AI fails"""
         return BrandStrategy(
@@ -160,7 +184,7 @@ class BrandDirector:
             alternative_names=["InnovateCo", "TechVenture", "NextGen"],
             tagline="Innovation Made Simple",
             positioning_statement="For forward-thinking professionals who need cutting-edge solutions, StartupCo is the technology platform that delivers innovation made simple",
-            
+
             industry="Technology",
             target_audience="Tech-savvy professionals aged 25-45 looking for innovative solutions",
             customer_pain_points=[
@@ -170,30 +194,36 @@ class BrandDirector:
             ],
             unique_value_proposition="10x faster implementation with AI-powered automation",
             competitive_advantage="Proprietary AI technology with network effects",
-            
-            brand_personality=["innovative", "reliable", "modern", "approachable"],
+
+            brand_personality=["innovative",
+                               "reliable", "modern", "approachable"],
             brand_archetype="Creator",
             brand_values=[
-                {"value": "Innovation", "explanation": "Constantly pushing boundaries to create better solutions"},
-                {"value": "Simplicity", "explanation": "Making complex technology accessible to everyone"},
-                {"value": "Reliability", "explanation": "Building trust through consistent performance"}
+                {"value": "Innovation",
+                    "explanation": "Constantly pushing boundaries to create better solutions"},
+                {"value": "Simplicity",
+                    "explanation": "Making complex technology accessible to everyone"},
+                {"value": "Reliability",
+                    "explanation": "Building trust through consistent performance"}
             ],
             brand_story="Born from frustration with overcomplicated enterprise software, StartupCo exists to democratize access to powerful technology. We believe innovation should empower, not overwhelm.",
-            
+
             color_scheme={
                 "primary": "#6366f1",
                 "secondary": "#8b5cf6",
                 "accent": "#06b6d4"
             },
             logo_style="modern geometric design with subtle gradients",
-            visual_elements=["clean lines", "geometric shapes", "gradient accents", "open space", "forward motion"],
+            visual_elements=["clean lines", "geometric shapes",
+                             "gradient accents", "open space", "forward motion"],
             typography_recommendations={
                 "primary": "Inter or SF Pro Display",
                 "secondary": "Inter or SF Pro Text",
                 "rationale": "Clean, modern sans-serif fonts that convey professionalism and approachability"
             },
-            
-            domain_suggestions=["startupco.com", "getstartupco.com", "startupco.io"],
+
+            domain_suggestions=["startupco.com",
+                                "getstartupco.com", "startupco.io"],
             social_handles_availability={
                 "instagram": True,
                 "twitter": True,

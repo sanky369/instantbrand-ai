@@ -14,10 +14,22 @@ from agents.video_creator import VideoCreator
 
 class BrandOrchestrator:
     def __init__(self):
-        self.brand_director = BrandDirector()
-        self.visual_creator = VisualCreator()
-        self.social_agent = SocialMediaAgent()
-        self.video_creator = VideoCreator()
+        try:
+            print("Initializing BrandOrchestrator...")
+            self.brand_director = BrandDirector()
+            print("BrandDirector initialized")
+            self.visual_creator = VisualCreator()
+            print("VisualCreator initialized")
+            self.social_agent = SocialMediaAgent()
+            print("SocialMediaAgent initialized")
+            self.video_creator = VideoCreator()
+            print("VideoCreator initialized")
+            print("BrandOrchestrator initialization complete")
+        except Exception as e:
+            print(f"Error initializing BrandOrchestrator: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
     
     async def create_brand_package(self, request: Union[BrandRequest, DetailedBrandRequest]) -> AsyncGenerator[ProgressUpdate, None]:
         """Orchestrate the complete brand package generation with real-time updates"""

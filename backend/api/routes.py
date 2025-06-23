@@ -44,6 +44,13 @@ async def generate_brand_package(request: Union[BrandRequest, DetailedBrandReque
         )
     
     except Exception as e:
+        import traceback
+        error_details = {
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }
+        print(f"Generation error: {error_details}")
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
 
 @router.post("/generate-brand-detailed")
