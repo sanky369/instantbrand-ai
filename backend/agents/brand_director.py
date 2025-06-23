@@ -145,6 +145,16 @@ class BrandDirector:
             # Parse the JSON response
             brand_data = json.loads(response_text)
 
+            # Handle target_audience if it's a complex object instead of string
+            if 'target_audience' in brand_data and isinstance(brand_data['target_audience'], dict):
+                # Convert dict to string description
+                target_dict = brand_data['target_audience']
+                if 'description' in target_dict:
+                    brand_data['target_audience'] = target_dict['description']
+                else:
+                    # Fallback: convert the whole dict to a readable string
+                    brand_data['target_audience'] = str(target_dict)
+
             # Handle color_scheme if it has rationale field
             if 'color_scheme' in brand_data and 'rationale' in brand_data['color_scheme']:
                 # Remove rationale from color_scheme as it's not in the model
