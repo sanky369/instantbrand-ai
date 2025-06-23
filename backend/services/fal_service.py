@@ -145,17 +145,18 @@ class FALService:
         return assets
     
     async def generate_promotional_video(self, strategy: BrandStrategy, logo_url: Optional[str] = None) -> GeneratedAsset:
-        """Generate promotional video using video models"""
+        """Generate promotional video using Veo3 model"""
         try:
             prompt = self._create_video_prompt(strategy)
             
-            # Use Kling or MiniMax for video generation
+            # Use Veo3 for high-quality video generation with audio
             result = await fal.subscribe_async(
-                "fal-ai/bytedance/seedance/v1/pro/text-to-video",
+                "fal-ai/veo3",
                 arguments={
                     "prompt": prompt,
-                    "duration": "5",
-                    "aspect_ratio": "16:9"
+                    "aspect_ratio": "16:9",
+                    "generate_audio": True,
+                    "enhance_prompt": True
                 }
             )
             
@@ -167,8 +168,9 @@ class FALService:
                 filename=f"promo_{strategy.company_name.lower().replace(' ', '_')}.mp4",
                 metadata={
                     "prompt": prompt,
-                    "model": "bytedance-seedance-v1",
-                    "duration": "5"
+                    "model": "veo3",
+                    "duration": "8",
+                    "audio_enabled": True
                 }
             )
             
@@ -325,25 +327,29 @@ class FALService:
         return assets
     
     def _create_video_prompt(self, strategy: BrandStrategy) -> str:
-        """Create prompt for promotional video"""
+        """Create optimized prompt for 8-second promotional video using Veo3"""
         # Generate a simple video script
         script = self._generate_video_script(strategy)
         
-        return f"""Create a 5-second promotional video for {strategy.company_name}.
-        
-        Video narrative structure:
-        Scene 1 (0-1s): Show the problem - {script['problem_visualization']}
-        Scene 2 (1-3s): Introduce solution - {script['solution_reveal']}
-        Scene 3 (3-4s): Show transformation - {script['benefit_demonstration']}
-        Scene 4 (4-5s): End card with logo and tagline: "{strategy.tagline}"
-        
-        Style: {', '.join(strategy.brand_personality)} feeling, {strategy.logo_style} aesthetic
-        Colors: {strategy.color_scheme.get('primary', '#6366f1')} primary palette
-        Target audience: {strategy.target_audience}
-        
-        Include text overlays with key messages: {', '.join(script['key_messages'])}
-        
-        High-quality animation, professional production value, engaging and memorable."""
+        return f"""Create an 8-second dynamic promotional video for {strategy.company_name}, a {strategy.industry} company.
+
+
+Video Structure:
+- Opening (0-2s): {script['problem_visualization']} - frustrated user with current limitations
+- Transition (2-4s): {script['solution_reveal']} - {strategy.company_name} solution appears with smooth reveal
+- Transformation (4-6s): {script['benefit_demonstration']} - user experiencing the benefits
+- Conclusion (6-8s): Brand logo with tagline "{strategy.tagline}" and confident call-to-action
+
+Style: {', '.join(strategy.brand_personality)} aesthetic, {strategy.logo_style} visual approach
+Composition: Professional cinematography with smooth camera movements, dynamic transitions
+Colors: Dominant {strategy.color_scheme.get('primary', '#6366f1')} color palette with complementary tones
+Ambiance: Upbeat, confident background music that builds momentum, professional sound design
+
+Text overlays: "{strategy.tagline}" and key benefit messaging
+Audio: Natural voiceover or synchronized dialogue explaining the value proposition
+Lighting: Bright, optimistic lighting that reinforces the positive brand message
+
+High production value, engaging storytelling, memorable brand presentation."""
     
     def _get_industry_cliches(self, industry: str) -> str:
         """Get industry-specific clichés to avoid"""
@@ -385,35 +391,39 @@ class FALService:
         }
     
     async def generate_promotional_video_with_script(self, strategy: BrandStrategy, script: Dict, logo_url: Optional[str] = None) -> GeneratedAsset:
-        """Generate promotional video using a detailed script"""
+        """Generate promotional video using Veo3 with detailed script"""
         try:
-            prompt = f"""Create a 5-second promotional video for {strategy.company_name}.
+            prompt = f"""Create an 8-second promotional video for {strategy.company_name}.
             
             Video script:
             - Hook (0-1s): {script['hook']}
-            - Problem (1-2s): {script['problem_visualization']}
-            - Solution (2-3s): {script['solution_reveal']}
-            - Benefit (3-4s): {script['benefit_demonstration']}
-            - CTA (4-5s): {script['cta']}
+            - Problem (1-3s): {script['problem_visualization']}
+            - Solution (3-5s): {script['solution_reveal']}
+            - Benefit (5-7s): {script['benefit_demonstration']}
+            - CTA (7-8s): {script['cta']}
             
             Text overlays: {', '.join(script['key_messages'])}
             Visual style: {script['visual_directions']}
-            Music: {script['music_mood']}
+            Audio: {script['music_mood']} background music with professional voiceover
             
             Brand elements:
             - Colors: {strategy.color_scheme.get('primary', '#6366f1')} primary palette
             - Style: {strategy.logo_style}
             - Personality: {', '.join(strategy.brand_personality)}
             
-            Create a compelling, professional promotional video that tells this story clearly."""
+            Composition: Professional cinematography with smooth transitions
+            Lighting: Bright, engaging lighting that supports the brand message
             
-            # Use video generation model
+            Create a compelling, high-quality promotional video that tells this story with audio and visual synchronization."""
+            
+            # Use Veo3 for video generation with audio
             result = await fal.subscribe_async(
-                "fal-ai/bytedance/seedance/v1/pro/text-to-video",
+                "fal-ai/veo3",
                 arguments={
                     "prompt": prompt,
-                    "duration": "5",
-                    "aspect_ratio": "16:9"
+                    "aspect_ratio": "16:9",
+                    "generate_audio": True,
+                    "enhance_prompt": True
                 }
             )
             
@@ -426,8 +436,9 @@ class FALService:
                 metadata={
                     "prompt": prompt,
                     "script": script,
-                    "model": "bytedance-seedance-v1",
-                    "duration": "5"
+                    "model": "veo3",
+                    "duration": "8",
+                    "audio_enabled": True
                 }
             )
             
