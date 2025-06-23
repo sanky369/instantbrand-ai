@@ -265,7 +265,7 @@ export default function Home() {
               >
                 Complete Brand Package
               </motion.span>
-              {' '}in 60 Seconds
+              {' '}within Minutes
             </motion.h1>
             
             <motion.p 
@@ -319,23 +319,41 @@ export default function Home() {
               className="flex items-center gap-2 text-gray-400"
               whileHover={{ scale: 1.05 }}
             >
-              <Users className="w-5 h-5" />
-              <span>Used by 10,000+ startups</span>
+              <Sparkles className="w-5 h-5" />
+              <span>Launch Beta - Early Access</span>
             </motion.div>
             
-            <div className="flex flex-wrap justify-center gap-6 opacity-60">
-              {TRUST_LOGOS.map((logo, index) => (
-                <motion.div 
-                  key={index} 
-                  className="text-gray-400 font-medium"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 1 + index * 0.1 }}
-                  whileHover={{ scale: 1.1, opacity: 1 }}
-                >
-                  {logo}
-                </motion.div>
-              ))}
+            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-400">
+              <motion.div 
+                className="flex items-center gap-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1 }}
+                whileHover={{ scale: 1.05, color: "#a855f7" }}
+              >
+                <Clock className="w-4 h-4" />
+                <span>Generated within minutes</span>
+              </motion.div>
+              <motion.div 
+                className="flex items-center gap-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.1 }}
+                whileHover={{ scale: 1.05, color: "#a855f7" }}
+              >
+                <Brain className="w-4 h-4" />
+                <span>4 AI agents</span>
+              </motion.div>
+              <motion.div 
+                className="flex items-center gap-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.2 }}
+                whileHover={{ scale: 1.05, color: "#a855f7" }}
+              >
+                <Zap className="w-4 h-4" />
+                <span>Complete brand package</span>
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -454,135 +472,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Results Preview Section */}
-      <section className="py-24 bg-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <motion.h2 
-              className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              See What You Get
-            </motion.h2>
-            <motion.p 
-              className="text-xl text-gray-600 max-w-3xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              Professional-grade brand assets that would normally take weeks and cost thousands
-            </motion.p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {[
-              { title: 'Logo Variations', icon: Sparkles, colors: ['purple', 'indigo'] },
-              { title: 'Website Mockups', icon: Monitor, colors: ['blue', 'cyan'] },
-              { title: 'Social Media Posts', icon: Instagram, colors: ['pink', 'rose'] },
-              { title: 'Video Content', icon: Video, colors: ['red', 'orange'] }
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ 
-                    duration: 0.8, 
-                    delay: index * 0.15,
-                    type: "spring",
-                    bounce: 0.4
-                  }}
-                  viewport={{ once: true }}
-                  whileHover={{ 
-                    scale: 1.05,
-                    y: -10,
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.1)"
-                  }}
-                  className="bg-gray-50 rounded-2xl p-6 text-center hover:shadow-lg transition-all duration-500 cursor-pointer group relative overflow-hidden"
-                >
-                  <motion.div
-                    className={`w-16 h-16 bg-gradient-to-r from-${item.colors[0]}-500 to-${item.colors[1]}-600 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-lg`}
-                    whileHover={{ 
-                      rotate: 360,
-                      scale: 1.1
-                    }}
-                    transition={{ duration: 0.8 }}
-                  >
-                    <Icon className="w-8 h-8 text-white" />
-                  </motion.div>
-                  <motion.h3 
-                    className="text-lg font-semibold text-gray-900 mb-4"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: index * 0.15 + 0.3 }}
-                    viewport={{ once: true }}
-                  >
-                    {item.title}
-                  </motion.h3>
-                  <motion.div 
-                    className="w-full h-32 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg relative overflow-hidden"
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent"
-                      animate={{ x: ['-100%', '100%'] }}
-                      transition={{ 
-                        duration: 2, 
-                        repeat: Infinity, 
-                        ease: "linear",
-                        delay: index * 0.5
-                      }}
-                    />
-                  </motion.div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <div className="flex justify-center items-center gap-8 text-sm text-gray-600">
-              {[
-                { icon: Clock, text: "47 seconds average generation time" },
-                { icon: Star, text: "12+ assets created" },
-                { icon: Brain, text: "4 AI models used" }
-              ].map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div 
-                    key={index}
-                    className="flex items-center gap-2"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{stat.text}</span>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-br from-purple-900 to-pink-900 relative overflow-hidden">
