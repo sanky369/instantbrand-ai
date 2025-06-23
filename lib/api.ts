@@ -1,68 +1,12 @@
-interface BrandRequest {
-  startup_idea: string;
-}
-
-interface DetailedBrandRequest {
-  startup_idea: string;
-  business_model: string;
-  target_demographics: string;
-  key_differentiators: string;
-  competitors: string[];
-  brand_personality_preferences: string[];
-  visual_style_preferences: string;
-  budget_constraints?: string;
-  timeline?: string;
-  industry_vertical: string;
-}
-
-interface AgentProgress {
-  agent_name: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  progress: number;
-  message: string;
-  result?: any;
-}
-
-interface ProgressUpdate {
-  package_id: string;
-  overall_progress: number;
-  current_agent: string;
-  agents: AgentProgress[];
-  message: string;
-  completed: boolean;
-  result?: BrandPackage;
-}
-
-interface BrandStrategy {
-  company_name: string;
-  tagline: string;
-  industry: string;
-  target_audience: string;
-  brand_personality: string[];
-  color_scheme: {
-    primary: string;
-    secondary: string;
-    accent?: string;
-  };
-  logo_style: string;
-  visual_elements: string[];
-}
-
-interface GeneratedAsset {
-  type: 'logo' | 'mockup' | 'social_post' | 'video';
-  url: string;
-  filename: string;
-  metadata?: any;
-}
-
-interface BrandPackage {
-  id: string;
-  strategy: BrandStrategy;
-  assets: GeneratedAsset[];
-  created_at: string;
-  status: string;
-  generation_time_seconds?: number;
-}
+import { 
+  BrandRequest, 
+  DetailedBrandRequest, 
+  AgentProgress, 
+  ProgressUpdate, 
+  BrandStrategy, 
+  GeneratedAsset, 
+  BrandPackage 
+} from './types';
 
 export class BrandAPI {
   private baseURL: string;
@@ -205,17 +149,39 @@ export class BrandAPI {
           id: packageId,
           strategy: {
             company_name: 'FitGenius',
+            alternative_names: ['FitIQ', 'SmartFit', 'FitCoach'],
             tagline: 'Your Personal Fitness Journey',
+            positioning_statement: 'For fitness enthusiasts who want personalized guidance, FitGenius provides AI-powered coaching to optimize your workout results.',
             industry: 'Health & Fitness',
             target_audience: 'Fitness enthusiasts aged 25-45',
+            customer_pain_points: ['Lack of personalized guidance', 'Plateauing progress', 'Inconsistent motivation'],
+            unique_value_proposition: 'AI-powered personal fitness coaching that adapts to your progress',
+            competitive_advantage: 'Advanced machine learning algorithms for personalized workout optimization',
             brand_personality: ['motivating', 'intelligent', 'trustworthy'],
+            brand_archetype: 'The Sage',
+            brand_values: [
+              { value: 'Empowerment', explanation: 'We believe everyone can achieve their fitness goals with the right guidance' },
+              { value: 'Innovation', explanation: 'We use cutting-edge AI to deliver personalized fitness solutions' }
+            ],
+            brand_story: 'FitGenius was born from the idea that everyone deserves a personal trainer. Using AI, we make expert fitness guidance accessible to everyone.',
             color_scheme: {
               primary: '#6366f1',
               secondary: '#8b5cf6',
               accent: '#06b6d4'
             },
             logo_style: 'modern and energetic',
-            visual_elements: ['lightning bolts', 'geometric shapes', 'gradient accents']
+            visual_elements: ['lightning bolts', 'geometric shapes', 'gradient accents'],
+            typography_recommendations: {
+              primary: 'Inter',
+              secondary: 'Roboto'
+            },
+            domain_suggestions: ['fitgenius.com', 'getfitgenius.com', 'fitgenius.ai'],
+            social_handles_availability: {
+              instagram: true,
+              twitter: true,
+              linkedin: true,
+              tiktok: false
+            }
           },
           assets: [
             {
