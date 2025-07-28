@@ -9,9 +9,11 @@ import {
   Linkedin,
   MessageSquare,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 import { GeneratedAsset, BrandStrategy } from '@/lib/types';
+import RegenerateModal from './regenerate-modal';
 
 interface SocialContentProps {
   assets: GeneratedAsset[];
@@ -19,6 +21,7 @@ interface SocialContentProps {
   onDownload: (url: string, filename: string) => void;
   onCopy: (text: string, itemId: string) => void;
   copiedItem: string | null;
+  onAssetUpdate?: (newAsset: GeneratedAsset) => void;
 }
 
 const platformIcons = {
@@ -33,8 +36,10 @@ const platformColors = {
   linkedin: 'from-blue-600 to-blue-800'
 };
 
-export default function SocialContent({ assets, strategy, onDownload, onCopy, copiedItem }: SocialContentProps) {
+export default function SocialContent({ assets: initialAssets, strategy, onDownload, onCopy, copiedItem, onAssetUpdate }: SocialContentProps) {
+  const [assets, setAssets] = useState(initialAssets);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+  const [regenerateAsset, setRegenerateAsset] = useState<GeneratedAsset | null>(null);
 
   // Group assets by platform
   const assetsByPlatform = assets.reduce((acc, asset) => {
@@ -43,6 +48,23 @@ export default function SocialContent({ assets, strategy, onDownload, onCopy, co
     acc[platform].push(asset);
     return acc;
   }, {} as Record<string, GeneratedAsset[]>);
+
+  const handleAssetRegenerated = (newAsset: GeneratedAsset) => {
+    // Update the local assets array
+    setAssets(prevAssets => {
+      const updatedAssets = prevAssets.filter(a => 
+        !(a.type === newAsset.type && a.metadata?.platform === newAsset.metadata?.platform)
+      );
+      return [...updatedAssets, newAsset];
+    });
+    
+    // Notify parent component if callback provided
+    if (onAssetUpdate) {
+      onAssetUpdate(newAsset);
+    }
+    
+    setRegenerateAsset(null);
+  };
 
   const CopyButton = ({ text, itemId }: { text: string; itemId: string }) => (
     <button
@@ -120,14 +142,21 @@ export default function SocialContent({ assets, strategy, onDownload, onCopy, co
                   </div>
                 )}
 
-                {/* Download Button */}
-                <div className="p-4 bg-gray-50 border-t">
+                {/* Action Buttons */}
+                <div className="p-4 bg-gray-50 border-t flex gap-2">
+                  <button
+                    onClick={() => setRegenerateAsset(asset)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Regenerate
+                  </button>
                   <button
                     onClick={() => onDownload(asset.url, asset.filename)}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
                     <Download className="w-4 h-4" />
-                    Download Image
+                    Download
                   </button>
                 </div>
               </div>
@@ -243,6 +272,17 @@ export default function SocialContent({ assets, strategy, onDownload, onCopy, co
           ))}
         </div>
       </div>
+
+      {/* Regenerate Modal */}
+      {regenerateAsset && (
+        <RegenerateModal
+          isOpen={!!regenerateAsset}
+          onClose={() => setRegenerateAsset(null)}
+          asset={regenerateAsset}
+          strategy={strategy}
+          onSuccess={handleAssetRegenerated}
+        />
+      )}
     </div>
   );
 }

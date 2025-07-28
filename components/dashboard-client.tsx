@@ -21,7 +21,7 @@ import {
   Zap,
   History
 } from 'lucide-react';
-import { BrandPackage } from '@/lib/types';
+import { BrandPackage, GeneratedAsset } from '@/lib/types';
 import { BrandStorage } from '@/lib/storage';
 import BrandOverview from '@/components/dashboard/brand-overview';
 import VisualAssets from '@/components/dashboard/visual-assets';
@@ -80,6 +80,30 @@ export default function DashboardClient() {
     } else {
       handleCopy(window.location.href, 'share-url');
     }
+  };
+
+  const handleAssetUpdate = (newAsset: GeneratedAsset) => {
+    if (!brandPackage) return;
+    
+    // Update the asset in the brand package
+    const updatedAssets = brandPackage.assets.map(asset => {
+      // For social posts, match by type and platform
+      if (asset.type === 'social_post' && newAsset.type === 'social_post') {
+        return asset.metadata?.platform === newAsset.metadata?.platform ? newAsset : asset;
+      }
+      // For other assets, just match by type
+      return asset.type === newAsset.type ? newAsset : asset;
+    });
+
+    const updatedPackage = {
+      ...brandPackage,
+      assets: updatedAssets
+    };
+
+    setBrandPackage(updatedPackage);
+    
+    // Update in storage
+    BrandStorage.savePackage(updatedPackage);
   };
 
   if (!brandPackage) {
@@ -188,6 +212,7 @@ export default function DashboardClient() {
               assets={brandPackage.assets.filter(a => a.type === 'logo' || a.type === 'mockup')}
               strategy={brandPackage.strategy}
               onDownload={handleDownload}
+              onAssetUpdate={handleAssetUpdate}
             />
           )}
           
@@ -198,6 +223,7 @@ export default function DashboardClient() {
               onDownload={handleDownload}
               onCopy={handleCopy}
               copiedItem={copiedItem}
+              onAssetUpdate={handleAssetUpdate}
             />
           )}
           
@@ -206,6 +232,7 @@ export default function DashboardClient() {
               asset={brandPackage.assets.find(a => a.type === 'video')}
               strategy={brandPackage.strategy}
               onDownload={handleDownload}
+              onAssetUpdate={handleAssetUpdate}
             />
           )}
           

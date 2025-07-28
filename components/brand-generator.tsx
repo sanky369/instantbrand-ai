@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Brain, 
@@ -16,7 +16,8 @@ import {
   Rocket
 } from 'lucide-react';
 import { brandAPI } from '@/lib/api';
-import { DetailedBrandRequest, BrandPackage, ProgressUpdate } from '@/lib/types';
+import { useGeneration } from '@/components/generation-context';
+import { ProgressUpdate } from '@/lib/types';
 
 const AI_AGENTS = [
   { name: 'Brand Director', icon: Brain, description: 'Analyzing startup concept...', color: 'text-purple-500', bgColor: 'bg-purple-500' },
@@ -26,7 +27,7 @@ const AI_AGENTS = [
 ];
 
 // Enhanced loading spinner
-const BrandSpinner = ({ size = 40 }: { size?: number }) => (
+export const BrandSpinner = ({ size = 40 }: { size?: number }) => (
   <div className="flex items-center justify-center">
     <motion.div
       className="relative"
@@ -51,97 +52,19 @@ const BrandSpinner = ({ size = 40 }: { size?: number }) => (
   </div>
 );
 
-interface BrandGeneratorProps {
-  request: DetailedBrandRequest;
-  onComplete: (brandPackage: BrandPackage) => void;
-  onClose: () => void;
-}
+export default function BrandGenerator() {
+  const { state, minimize } = useGeneration();
+  const progress = state.progress;
+  const error = state.error;
 
-export default function BrandGenerator({ request, onComplete, onClose }: BrandGeneratorProps) {
-  const [progress, setProgress] = useState<ProgressUpdate | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [backendStatus, setBackendStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
-
-  // Check backend availability on component mount
-  useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        await brandAPI.healthCheck();
-        setBackendStatus('available');
-      } catch (error) {
-        console.error('Backend check failed:', error);
-        setBackendStatus('unavailable');
-      }
-    };
-
-    checkBackend();
-  }, []);
-
-  // Start generation when component mounts
-  useEffect(() => {
-    if (backendStatus === 'available' && !isGenerating) {
-      startGeneration();
-    } else if (backendStatus === 'unavailable' && !isGenerating) {
-      // Use simulation for demo
-      startSimulation();
-    }
-  }, [backendStatus]);
-
-  const startGeneration = () => {
-    setIsGenerating(true);
-    setError(null);
-    setProgress(null);
-
-    try {
-      brandAPI.generateBrandPackage(
-        request,
-        (update: ProgressUpdate) => {
-          setProgress(update);
-        },
-        (result: BrandPackage) => {
-          setIsGenerating(false);
-          onComplete(result);
-        },
-        (errorMessage: string) => {
-          setIsGenerating(false);
-          setError(errorMessage);
-        }
-      );
-    } catch (err) {
-      setIsGenerating(false);
-      setError(err instanceof Error ? err.message : 'Failed to start generation');
-    }
-  };
-
-  const startSimulation = () => {
-    setIsGenerating(true);
-    setError(null);
-    setProgress(null);
-
-    brandAPI.simulateGeneration(
-      request,
-      (update: ProgressUpdate) => {
-        setProgress(update);
-      },
-      (result: BrandPackage) => {
-        setIsGenerating(false);
-        onComplete(result);
-      },
-      (errorMessage: string) => {
-        setIsGenerating(false);
-        setError(errorMessage);
-      }
-    );
+  // Helper to get current agent progress from context state
+  const getCurrentAgentProgress = () => {
+    if (!progress) return null;
+    return progress.agents.find((agent) => agent.status === 'in_progress');
   };
 
   const getAgentByName = (name: string) => {
     return AI_AGENTS.find(agent => agent.name === name) || AI_AGENTS[0];
-  };
-
-  const getCurrentAgentProgress = () => {
-    if (!progress) return null;
-    return progress.agents.find(agent => agent.status === 'in_progress');
   };
 
   return (
@@ -150,7 +73,7 @@ export default function BrandGenerator({ request, onComplete, onClose }: BrandGe
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={minimize}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
@@ -169,7 +92,7 @@ export default function BrandGenerator({ request, onComplete, onClose }: BrandGe
               </p>
             </div>
             <button
-              onClick={onClose}
+              onClick={minimize}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
@@ -179,7 +102,7 @@ export default function BrandGenerator({ request, onComplete, onClose }: BrandGe
 
         {/* Content */}
         <div className="p-8">
-          {backendStatus === 'checking' && (
+          {state.status === 'idle' && (
             <div className="text-center py-12">
               <BrandSpinner size={60} />
               <p className="mt-4 text-gray-600">Connecting to AI agents...</p>
@@ -193,13 +116,13 @@ export default function BrandGenerator({ request, onComplete, onClose }: BrandGe
               <p className="text-gray-600 mb-6">{error}</p>
               <div className="flex gap-4 justify-center">
                 <button
-                  onClick={backendStatus === 'available' ? startGeneration : startSimulation}
+                  onClick={() => window.location.reload()}
                   className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Try Again
                 </button>
                 <button
-                  onClick={onClose}
+                  onClick={minimize}
                   className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
                 >
                   Cancel
@@ -208,7 +131,7 @@ export default function BrandGenerator({ request, onComplete, onClose }: BrandGe
             </div>
           )}
 
-          {isGenerating && !error && (
+          {state.status === 'in_progress' && !error && (
             <div className="space-y-8">
               {/* Overall Progress */}
               <div className="text-center">
@@ -305,7 +228,6 @@ export default function BrandGenerator({ request, onComplete, onClose }: BrandGe
               {/* Status Messages */}
               <div className="text-center">
                 <p className="text-gray-600">
-                  {backendStatus === 'unavailable' && '⚠️ Running in demo mode - '}
                   Estimated time remaining: {Math.max(1, Math.ceil((100 - (progress?.overall_progress || 0)) / 2))} minutes
                 </p>
               </div>

@@ -76,3 +76,17 @@ export interface ProgressUpdate {
   completed: boolean;
   result?: BrandPackage;
 }
+
+export interface RegenerateRequest {
+  asset_type: string;
+  original_prompt: string;
+  new_prompt: string;
+  brand_strategy: BrandStrategy;
+  metadata?: { [key: string]: any };
+}
+
+export interface RegenerateResponse {
+  success: boolean;
+  asset?: GeneratedAsset;
+  error?: string;
+}

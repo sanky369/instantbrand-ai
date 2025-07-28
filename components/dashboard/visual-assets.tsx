@@ -6,21 +6,43 @@ import {
   X,
   Palette,
   Monitor,
-  Info
+  Info,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import { GeneratedAsset, BrandStrategy } from '@/lib/types';
+import RegenerateModal from './regenerate-modal';
 
 interface VisualAssetsProps {
   assets: GeneratedAsset[];
   strategy: BrandStrategy;
   onDownload: (url: string, filename: string) => void;
+  onAssetUpdate?: (newAsset: GeneratedAsset) => void;
 }
 
-export default function VisualAssets({ assets, strategy, onDownload }: VisualAssetsProps) {
+export default function VisualAssets({ assets: initialAssets, strategy, onDownload, onAssetUpdate }: VisualAssetsProps) {
+  const [assets, setAssets] = useState(initialAssets);
   const [selectedAsset, setSelectedAsset] = useState<GeneratedAsset | null>(null);
+  const [regenerateAsset, setRegenerateAsset] = useState<GeneratedAsset | null>(null);
 
   const logo = assets.find(a => a.type === 'logo');
   const mockup = assets.find(a => a.type === 'mockup');
+
+  const handleAssetRegenerated = (newAsset: GeneratedAsset) => {
+    // Update the local assets array
+    setAssets(prevAssets => 
+      prevAssets.map(asset => 
+        asset.type === newAsset.type ? newAsset : asset
+      )
+    );
+    
+    // Notify parent component if callback provided
+    if (onAssetUpdate) {
+      onAssetUpdate(newAsset);
+    }
+    
+    setRegenerateAsset(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -32,13 +54,22 @@ export default function VisualAssets({ assets, strategy, onDownload }: VisualAss
               <Palette className="w-5 h-5 text-purple-600" />
               Logo Design
             </h3>
-            <button
-              onClick={() => onDownload(logo.url, logo.filename)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Download Logo
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRegenerateAsset(logo)}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <Sparkles className="w-4 h-4" />
+                Regenerate
+              </button>
+              <button
+                onClick={() => onDownload(logo.url, logo.filename)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -113,13 +144,22 @@ export default function VisualAssets({ assets, strategy, onDownload }: VisualAss
               <Monitor className="w-5 h-5 text-purple-600" />
               Website Mockup
             </h3>
-            <button
-              onClick={() => onDownload(mockup.url, mockup.filename)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Download Mockup
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRegenerateAsset(mockup)}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <Sparkles className="w-4 h-4" />
+                Regenerate
+              </button>
+              <button
+                onClick={() => onDownload(mockup.url, mockup.filename)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </button>
+            </div>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">
@@ -250,6 +290,17 @@ export default function VisualAssets({ assets, strategy, onDownload }: VisualAss
             </div>
           </motion.div>
         </motion.div>
+      )}
+
+      {/* Regenerate Modal */}
+      {regenerateAsset && (
+        <RegenerateModal
+          isOpen={!!regenerateAsset}
+          onClose={() => setRegenerateAsset(null)}
+          asset={regenerateAsset}
+          strategy={strategy}
+          onSuccess={handleAssetRegenerated}
+        />
       )}
     </div>
   );

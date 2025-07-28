@@ -390,6 +390,149 @@ High production value, engaging storytelling, memorable brand presentation."""
             ]
         }
     
+    async def regenerate_logo(self, strategy: BrandStrategy, custom_prompt: str) -> GeneratedAsset:
+        """Regenerate logo with custom prompt"""
+        try:
+            # Use custom prompt while maintaining brand context
+            prompt = f"{custom_prompt}\n\nCompany: {strategy.company_name}\nIndustry: {strategy.industry}\nBrand personality: {', '.join(strategy.brand_personality)}\nColor scheme: Primary {strategy.color_scheme.get('primary', '#6366f1')}"
+            
+            result = await fal.subscribe_async(
+                "fal-ai/flux/dev",
+                arguments={
+                    "prompt": prompt,
+                    "image_size": "square_hd",
+                    "num_inference_steps": 50,
+                    "guidance_scale": 7.5,
+                    "enable_safety_checker": True
+                }
+            )
+            
+            image_url = result["images"][0]["url"]
+            
+            return GeneratedAsset(
+                type="logo",
+                url=image_url,
+                filename=f"logo_{strategy.company_name.lower().replace(' ', '_')}_regenerated.png",
+                metadata={
+                    "prompt": prompt,
+                    "custom_prompt": custom_prompt,
+                    "model": "flux-dev",
+                    "regenerated": True
+                }
+            )
+            
+        except Exception as e:
+            print(f"Logo regeneration error: {e}")
+            raise
+    
+    async def regenerate_mockup(self, strategy: BrandStrategy, custom_prompt: str) -> GeneratedAsset:
+        """Regenerate website mockup with custom prompt"""
+        try:
+            prompt = f"{custom_prompt}\n\nCompany: {strategy.company_name}\nTagline: {strategy.tagline}\nColors: {strategy.color_scheme.get('primary', '#6366f1')}"
+            
+            result = await fal.subscribe_async(
+                "fal-ai/flux/schnell",
+                arguments={
+                    "prompt": prompt,
+                    "image_size": "landscape_16_9",
+                    "num_inference_steps": 4,
+                    "enable_safety_checker": True
+                }
+            )
+            
+            image_url = result["images"][0]["url"]
+            
+            return GeneratedAsset(
+                type="mockup",
+                url=image_url,
+                filename=f"mockup_{strategy.company_name.lower().replace(' ', '_')}_regenerated.png",
+                metadata={
+                    "prompt": prompt,
+                    "custom_prompt": custom_prompt,
+                    "model": "flux-schnell",
+                    "regenerated": True
+                }
+            )
+            
+        except Exception as e:
+            print(f"Mockup regeneration error: {e}")
+            raise
+    
+    async def regenerate_social_post(self, strategy: BrandStrategy, custom_prompt: str, platform: str) -> GeneratedAsset:
+        """Regenerate social media post with custom prompt"""
+        try:
+            size_map = {
+                "instagram": "square_hd",
+                "linkedin": "landscape_4_3", 
+                "twitter": "landscape_16_9"
+            }
+            
+            prompt = f"{custom_prompt}\n\nPlatform: {platform}\nCompany: {strategy.company_name}\nBrand style: {', '.join(strategy.brand_personality)}"
+            
+            result = await fal.subscribe_async(
+                "fal-ai/flux/schnell",
+                arguments={
+                    "prompt": prompt,
+                    "image_size": size_map.get(platform, "square_hd"),
+                    "num_inference_steps": 4,
+                    "enable_safety_checker": True
+                }
+            )
+            
+            image_url = result["images"][0]["url"]
+            
+            return GeneratedAsset(
+                type="social_post",
+                url=image_url,
+                filename=f"social_{platform}_{strategy.company_name.lower().replace(' ', '_')}_regenerated.png",
+                metadata={
+                    "prompt": prompt,
+                    "custom_prompt": custom_prompt,
+                    "platform": platform,
+                    "model": "flux-schnell",
+                    "regenerated": True
+                }
+            )
+            
+        except Exception as e:
+            print(f"Social post regeneration error: {e}")
+            raise
+    
+    async def regenerate_video(self, strategy: BrandStrategy, custom_prompt: str) -> GeneratedAsset:
+        """Regenerate promotional video with custom prompt"""
+        try:
+            prompt = f"{custom_prompt}\n\nCompany: {strategy.company_name}\nTagline: {strategy.tagline}\nBrand style: {', '.join(strategy.brand_personality)}"
+            
+            result = await fal.subscribe_async(
+                "fal-ai/veo3",
+                arguments={
+                    "prompt": prompt,
+                    "aspect_ratio": "16:9",
+                    "generate_audio": True,
+                    "enhance_prompt": True
+                }
+            )
+            
+            video_url = result["video"]["url"]
+            
+            return GeneratedAsset(
+                type="video",
+                url=video_url,
+                filename=f"promo_{strategy.company_name.lower().replace(' ', '_')}_regenerated.mp4",
+                metadata={
+                    "prompt": prompt,
+                    "custom_prompt": custom_prompt,
+                    "model": "veo3",
+                    "duration": "8",
+                    "audio_enabled": True,
+                    "regenerated": True
+                }
+            )
+            
+        except Exception as e:
+            print(f"Video regeneration error: {e}")
+            raise
+
     async def generate_promotional_video_with_script(self, strategy: BrandStrategy, script: Dict, logo_url: Optional[str] = None) -> GeneratedAsset:
         """Generate promotional video using Veo3 with detailed script"""
         try:

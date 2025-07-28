@@ -11,18 +11,23 @@ import {
   Youtube,
   Share2,
   Palette,
-  Instagram
+  Instagram,
+  Sparkles
 } from 'lucide-react';
 import { GeneratedAsset, BrandStrategy } from '@/lib/types';
+import RegenerateModal from './regenerate-modal';
 
 interface VideoSectionProps {
   asset?: GeneratedAsset;
   strategy: BrandStrategy;
   onDownload: (url: string, filename: string) => void;
+  onAssetUpdate?: (newAsset: GeneratedAsset) => void;
 }
 
-export default function VideoSection({ asset, strategy, onDownload }: VideoSectionProps) {
+export default function VideoSection({ asset: initialAsset, strategy, onDownload, onAssetUpdate }: VideoSectionProps) {
+  const [asset, setAsset] = useState(initialAsset);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [regenerateModalOpen, setRegenerateModalOpen] = useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   const handlePlayPause = () => {
@@ -34,6 +39,14 @@ export default function VideoSection({ asset, strategy, onDownload }: VideoSecti
       }
       setIsPlaying(!isPlaying);
     }
+  };
+
+  const handleAssetRegenerated = (newAsset: GeneratedAsset) => {
+    setAsset(newAsset);
+    if (onAssetUpdate) {
+      onAssetUpdate(newAsset);
+    }
+    setRegenerateModalOpen(false);
   };
 
   if (!asset) {
@@ -56,13 +69,22 @@ export default function VideoSection({ asset, strategy, onDownload }: VideoSecti
             <Video className="w-5 h-5 text-purple-600" />
             Promotional Video
           </h3>
-          <button
-            onClick={() => onDownload(asset.url, asset.filename)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Download Video
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setRegenerateModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              Regenerate
+            </button>
+            <button
+              onClick={() => onDownload(asset.url, asset.filename)}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Download
+            </button>
+          </div>
         </div>
 
         <div className="relative bg-black rounded-lg overflow-hidden">
@@ -244,6 +266,17 @@ export default function VideoSection({ asset, strategy, onDownload }: VideoSecti
           </p>
         </div>
       </div>
+
+      {/* Regenerate Modal */}
+      {regenerateModalOpen && asset && (
+        <RegenerateModal
+          isOpen={regenerateModalOpen}
+          onClose={() => setRegenerateModalOpen(false)}
+          asset={asset}
+          strategy={strategy}
+          onSuccess={handleAssetRegenerated}
+        />
+      )}
     </div>
   );
 }

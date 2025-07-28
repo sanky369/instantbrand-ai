@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { 
@@ -27,8 +27,9 @@ import {
 } from 'lucide-react';
 import BrandQuestionnaire from '@/components/brand-questionnaire';
 import BrandGenerator from '@/components/brand-generator';
-import { DetailedBrandRequest, BrandPackage } from '@/lib/types';
+import { DetailedBrandRequest } from '@/lib/types';
 import { BrandStorage } from '@/lib/storage';
+import { useGeneration } from '@/components/generation-context';
 
 
 const FEATURES = [
@@ -145,24 +146,24 @@ export default function Home() {
   const heroY = useTransform(scrollY, [0, 500], [0, -100]);
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
   const router = useRouter();
-  
+
+  // Modal states
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
-  const [showGenerator, setShowGenerator] = useState(false);
-  const [currentRequest, setCurrentRequest] = useState<DetailedBrandRequest | null>(null);
+
+  // Generation context
+  const { startGeneration, state: genState, reset } = useGeneration();
 
   const handleQuestionnaireSubmit = (data: DetailedBrandRequest) => {
-    setCurrentRequest(data);
+    startGeneration(data);
     setShowQuestionnaire(false);
-    setShowGenerator(true);
   };
-
-  const handleGenerationComplete = (brandPackage: BrandPackage) => {
-    // Save to storage
-    BrandStorage.savePackage(brandPackage);
-    
-    // Redirect to dashboard
-    router.push(`/dashboard/${brandPackage.id}`);
-  };
+  useEffect(() => {
+    if (genState.status === 'completed' && genState.result) {
+      BrandStorage.savePackage(genState.result);
+      router.push(`/dashboard/${genState.result.id}`);
+      reset(); // clear context after navigation
+    }
+  }, [genState.status]);
 
   const openQuestionnaire = () => {
     setShowQuestionnaire(true);
@@ -665,12 +666,8 @@ export default function Home() {
 
       {/* Brand Generator Modal */}
       <AnimatePresence>
-        {showGenerator && currentRequest && (
-          <BrandGenerator
-            request={currentRequest}
-            onComplete={handleGenerationComplete}
-            onClose={() => setShowGenerator(false)}
-          />
+        {genState.status === 'in_progress' && !genState.minimized && (
+          <BrandGenerator />
         )}
       </AnimatePresence>
     </div>

@@ -5,7 +5,9 @@ import {
   ProgressUpdate, 
   BrandStrategy, 
   GeneratedAsset, 
-  BrandPackage 
+  BrandPackage,
+  RegenerateRequest,
+  RegenerateResponse
 } from './types';
 
 export class BrandAPI {
@@ -251,6 +253,28 @@ export class BrandAPI {
 
     const timeout = setTimeout(runStep, 1000);
     return timeout;
+  }
+
+  async regenerateAsset(request: RegenerateRequest): Promise<RegenerateResponse> {
+    try {
+      const response = await fetch(`${this.baseURL}/api/regenerate-asset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${error}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Asset regeneration failed:', error);
+      throw error;
+    }
   }
 }
 

@@ -2,7 +2,7 @@ import json
 import os
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from models import BrandRequest, DetailedBrandRequest, ProgressUpdate, BrandPackage
+from models import BrandRequest, DetailedBrandRequest, ProgressUpdate, BrandPackage, RegenerateRequest, RegenerateResponse
 from typing import Union
 
 # Load environment variables
@@ -57,6 +57,34 @@ async def generate_brand_package(request: Union[BrandRequest, DetailedBrandReque
 async def generate_brand_package_detailed(request: DetailedBrandRequest):
     """Generate a brand package with detailed questionnaire input"""
     return await generate_brand_package(request)
+
+@router.post("/regenerate-asset")
+async def regenerate_asset(request: RegenerateRequest):
+    """Regenerate a specific asset with a new prompt"""
+    try:
+        from services.fal_service import FALService
+        fal_service = FALService()
+        
+        # Regenerate based on asset type
+        if request.asset_type == "logo":
+            # Override the prompt creation with the user's new prompt
+            asset = await fal_service.regenerate_logo(request.brand_strategy, request.new_prompt)
+        elif request.asset_type == "mockup":
+            asset = await fal_service.regenerate_mockup(request.brand_strategy, request.new_prompt)
+        elif request.asset_type == "social_post":
+            platform = request.metadata.get("platform", "instagram") if request.metadata else "instagram"
+            asset = await fal_service.regenerate_social_post(request.brand_strategy, request.new_prompt, platform)
+        elif request.asset_type == "video":
+            asset = await fal_service.regenerate_video(request.brand_strategy, request.new_prompt)
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid asset type: {request.asset_type}")
+        
+        return RegenerateResponse(success=True, asset=asset)
+    
+    except Exception as e:
+        import traceback
+        print(f"Regeneration error: {traceback.format_exc()}")
+        return RegenerateResponse(success=False, error=str(e))
 
 @router.get("/test-agents")
 async def test_agents():

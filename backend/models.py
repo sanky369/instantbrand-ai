@@ -82,3 +82,15 @@ class ProgressUpdate(BaseModel):
     message: str
     completed: bool = False
     result: Optional[BrandPackage] = None
+
+class RegenerateRequest(BaseModel):
+    asset_type: str = Field(..., description="Type of asset to regenerate: logo, mockup, social_post, video")
+    original_prompt: str = Field(..., description="Original prompt used for generation")
+    new_prompt: str = Field(..., description="New/modified prompt for regeneration")
+    brand_strategy: BrandStrategy = Field(..., description="Brand strategy for context")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata like platform for social posts")
+
+class RegenerateResponse(BaseModel):
+    success: bool
+    asset: Optional[GeneratedAsset] = None
+    error: Optional[str] = None
